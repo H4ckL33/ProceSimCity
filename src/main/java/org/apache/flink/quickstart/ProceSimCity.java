@@ -1,11 +1,15 @@
 package org.apache.flink.quickstart;
 
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import org.bson.Document;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternSelectFunction;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.pattern.Pattern;
-import org.apache.flink.cep.pattern.conditions.IterativeCondition;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
 import org.apache.flink.quickstart.eventos.Alerta;
 import org.apache.flink.quickstart.eventos.MonitoringEvent;
@@ -24,12 +28,25 @@ import java.util.Properties;
 
 public class ProceSimCity {
     public static void main(String[] args) throws Exception{
+        //Creamos la conexión con MongoDB y definimos las colecciones que usaremos
+        MongoClient mongo = new MongoClient( "localhost" , 27017 );
+        MongoCredential credential;
+        credential = MongoCredential.createCredential("developer", "alertEvent", "password".toCharArray());
+        MongoDatabase database = mongo.getDatabase("alertEvent");
+        MongoCollection<Document> warningCollection = database.getCollection("warningCollection");
+        MongoCollection<Document> alertCollection = database.getCollection("alertCollection");
+        MongoCollection<Document> accidentCollection = database.getCollection("accidentCollection");
+        Document documentoWarnings = new Document("tipo", "warning");
+        Document documentoAlerts = new Document("tipo", "alert");
+        Document documentoAccidents = new Document("tipo", "accident");
+
+
+        //Creamos la conexión para el flujo de datos, y añadimos como semilla de datos un consumidor de kafka
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        //Use ingestion time => TimeCharacteristic == EventTime + IngestionTimeExtractor
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", "localhost:9092");
-        properties.setProperty("group.id", "roads");
+        properties.setProperty("group.id", "semaphores");
 
         //Indicamos que vamos a consumir del topic de kafka que se llamará roads
         DataStream<MonitoringEvent> inputEventStream = env.addSource(
@@ -85,7 +102,7 @@ public class ProceSimCity {
 
                     public Alerta select(Map<String, List<MonitoringEvent>> event) throws Exception {
                         TemperatureEvent evento = (TemperatureEvent)event.get("first").get(0);
-                        return new Alerta("Temperatura especialmente alta: " + evento.getTemperatura()+ "ºC.");
+                        return new Alerta("Temperatura especialmente alta: " + evento.getTemperatura()+ "ºC.", 'w');
                     }
 
                 });
@@ -97,7 +114,9 @@ public class ProceSimCity {
 
                     public Alerta select(Map<String, List<MonitoringEvent>> event) throws Exception {
                         TemperatureEvent evento = (TemperatureEvent)event.get("first").get(0);
-                        return new Alerta("Acercandose final de tiempo de vida del sensor, cambiar. contador, temperatura: "+evento.getContador()+","+evento.getTemperatura()+".");
+                        //documentoAlerts.append("mensaje", "Acercandose final de tiempo de vida del sensor, cambiar. contador, temperatura: "+evento.getContador()+","+evento.getTemperatura()+".");
+                        //alertCollection.insertOne(documentoAlerts);
+                        return new Alerta("Acercandose final de tiempo de vida del sensor, cambiar. contador, temperatura: "+evento.getContador()+","+evento.getTemperatura()+".", 'l');
                     }
 
                 });
@@ -108,10 +127,13 @@ public class ProceSimCity {
 
                     public Alerta select(Map<String, List<MonitoringEvent>> event) throws Exception {
                         TemperatureEvent evento = (TemperatureEvent)event.get("first").get(0);
-                        return new Alerta("Fallo del sistema de semáforos, posibilidad de accidente. BLOQUEAR TRAMO DE CARRETERA. contador,temperatura: "+evento.getContador()+","+evento.getTemperatura()+".");
+                        //documentoAccidents.append("mensaje", "Fallo del sistema de semáforos, posibilidad de accidente. BLOQUEAR TRAMO DE CARRETERA. contador,temperatura: "+evento.getContador()+","+evento.getTemperatura()+".");
+                        //accidentCollection.insertOne(documentoAccidents);
+                        return new Alerta("Fallo del sistema de semáforos, posibilidad de accidente. BLOQUEAR TRAMO DE CARRETERA. contador,temperatura: "+evento.getContador()+","+evento.getTemperatura()+".", 'a');
                     }
 
                 });
+
 
         warningStream.print();
         alertStream.print();

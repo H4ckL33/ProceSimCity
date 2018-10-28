@@ -1,8 +1,40 @@
 package org.apache.flink.quickstart.eventos;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import org.bson.Document;
 
 public class Alerta {
 
     private String mensaje;
+    private char tipo;
+    private static MongoClient mongo = new MongoClient( "localhost" , 27017 );
+    private static MongoCredential credential = MongoCredential.createCredential("developer", "alertEvent", "password".toCharArray());
+    private static MongoDatabase database = mongo.getDatabase("alertEvent");
+
+    public Alerta(String mensaje, char tipo) {
+        super();
+        this.mensaje = mensaje;
+        this.tipo = tipo;
+
+        switch (tipo){
+            case 'w':
+                MongoCollection<Document> warningCollection = database.getCollection("warningCollection");
+                Document documentoWarnings = new Document("tipo", "warning").append("mensaje", this.mensaje);
+                warningCollection.insertOne(documentoWarnings);break;
+            case 'l':
+                MongoCollection<Document> alertCollection = database.getCollection("alertCollection");
+                Document documentoAlerts = new Document("tipo", "alert").append("mensaje", this.mensaje);
+                alertCollection.insertOne(documentoAlerts);break;
+            case 'a':
+                MongoCollection<Document> accidentCollection = database.getCollection("accidentCollection");
+                Document documentoAccidents = new Document("tipo", "accident").append("mensaje", this.mensaje);
+                accidentCollection.insertOne(documentoAccidents);break;
+            default:
+                this.mensaje = "Tipo de alerta no válido, revise su creación.";break;
+        }
+    }
 
     public String getMensaje() {
         return mensaje;
@@ -12,10 +44,9 @@ public class Alerta {
         this.mensaje = mensaje;
     }
 
-    public Alerta(String mensaje) {
-        super();
-        this.mensaje = mensaje;
-    }
+    public char getTipo(){return this.tipo;}
+
+    public void setTipo(char tipo) { this.tipo = tipo; }
 
     @Override
     public String toString() {
