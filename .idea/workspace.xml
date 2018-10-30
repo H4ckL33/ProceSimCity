@@ -1,23 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0f8084ab-f435-4695-b798-3db7aafab71a" name="Default Changelist" comment="Implementado y funcionando conexión con MongoDB, y pruebas terminadas.">
-      <change afterPath="$PROJECT_DIR$/src/main/java/test/ProceSimTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/apache/flink/quickstart/ProceSimCity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/apache/flink/quickstart/ProceSimCity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/apache/flink/quickstart/eventos/Alerta.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/apache/flink/quickstart/eventos/Alerta.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$2.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$3.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$4.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$5.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$5.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$6.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$6.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$7.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$7.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$8.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity$8.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/ProceSimCity.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/eventos/Alerta.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/apache/flink/quickstart/eventos/Alerta.class" afterDir="false" />
-    </list>
+    <list default="true" id="0f8084ab-f435-4695-b798-3db7aafab71a" name="Default Changelist" comment="Implementado y funcionando conexión con MongoDB, y pruebas terminadas." />
     <ignored path="$PROJECT_DIR$/target/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -29,7 +13,7 @@
     <session id="1767060642">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="21" />
+          <entry key="project.closed" value="22" />
           <entry key="project.open.time.10" value="2" />
           <entry key="project.open.time.3" value="1" />
           <entry key="project.open.time.6" value="1" />
@@ -251,7 +235,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1540728211645" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1540728270505" />
     <property name="settings.editor.selected.configurable" value="configurable.group.tools" />
   </component>
   <component name="RunDashboard">
@@ -317,12 +301,12 @@
       <workItem from="1540395817095" duration="1784000" />
       <workItem from="1540417798276" duration="5964000" />
       <workItem from="1540424131483" duration="2012000" />
-      <workItem from="1540721513026" duration="5993000" />
+      <workItem from="1540721513026" duration="6139000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="50074000" />
+    <option name="totallyTimeSpent" value="50220000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
