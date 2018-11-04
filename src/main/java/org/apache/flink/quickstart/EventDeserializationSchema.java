@@ -5,19 +5,19 @@ import java.nio.charset.StandardCharsets;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
-import org.apache.flink.quickstart.eventos.TemperatureEvent;
+import org.apache.flink.quickstart.eventos.RoadEvent;
 
 public class EventDeserializationSchema implements DeserializationSchema {
 
     public TypeInformation getProducedType(){
-        return TypeExtractor.getForClass(TemperatureEvent.class);
+        return TypeExtractor.getForClass(RoadEvent.class);
     }
 
-    public TemperatureEvent deserialize(byte[] arg0) throws IOException{
+    public RoadEvent deserialize(byte[] arg0) throws IOException{
         String str = new String(arg0, StandardCharsets.UTF_8);
         String[] parts = str.split("=");
 
-        return new TemperatureEvent(Integer.parseInt(parts[0]), Double.parseDouble(parts[1]));
+        return new RoadEvent(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
     }
 
     @Override
@@ -25,7 +25,7 @@ public class EventDeserializationSchema implements DeserializationSchema {
         return false;
     }
 
-    public boolean isEndOfStream(TemperatureEvent arg0){
+    public boolean isEndOfStream(RoadEvent arg0){
         return false;
     }
 

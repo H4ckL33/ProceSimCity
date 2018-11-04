@@ -2,18 +2,18 @@ package org.apache.flink.quickstart.eventos;
 
 public abstract class MonitoringEvent {
 
-    private int contador;
+    private int id;
 
-    public MonitoringEvent(int contador){
-        this.contador = contador;
+    public MonitoringEvent(int id){
+        this.id = id;
     }
 
-    public int getContador() {
-        return contador;
+    public int getId() {
+        return id;
     }
 
-    public void setContador(int contador) {
-        this.contador = contador;
+    public void setId(int id) {
+        this.id = id;
     }
 
 
@@ -21,7 +21,7 @@ public abstract class MonitoringEvent {
     public boolean equals(Object obj) {
         if (obj instanceof MonitoringEvent) {
             MonitoringEvent monitoringEvent = (MonitoringEvent) obj;
-            return monitoringEvent.canEquals(this) && contador == monitoringEvent.contador;
+            return monitoringEvent.canEquals(this) && id == monitoringEvent.id;
         } else {
             return false;
         }
@@ -29,7 +29,7 @@ public abstract class MonitoringEvent {
 
     @Override
     public int hashCode() {
-        return contador;
+        return id;
     }
 
     public boolean canEquals(Object obj) {

@@ -4,6 +4,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
+import org.apache.flink.quickstart.eventos.RoadEvent;
 import org.bson.Document;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.cep.CEP;
@@ -13,7 +14,6 @@ import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
 import org.apache.flink.quickstart.eventos.Alerta;
 import org.apache.flink.quickstart.eventos.MonitoringEvent;
-import org.apache.flink.quickstart.eventos.TemperatureEvent;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -24,85 +24,67 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.sql.Timestamp;
 
 
 public class ProceSimCity {
     public static void main(String[] args) throws Exception{
-        //Creamos la conexión con MongoDB y definimos las colecciones que usaremos
-        MongoClient mongo = new MongoClient( "localhost" , 27017 );
-        MongoCredential credential;
-        credential = MongoCredential.createCredential("developer", "alertEvent", "password".toCharArray());
-        MongoDatabase database = mongo.getDatabase("alertEvent");
-        MongoCollection<Document> warningCollection = database.getCollection("warningCollection");
-        MongoCollection<Document> alertCollection = database.getCollection("alertCollection");
-        MongoCollection<Document> accidentCollection = database.getCollection("accidentCollection");
-        Document documentoWarnings = new Document("tipo", "warning");
-        Document documentoAlerts = new Document("tipo", "alert");
-        Document documentoAccidents = new Document("tipo", "accident");
-
-
         //Creamos la conexión para el flujo de datos, y añadimos como semilla de datos un consumidor de kafka
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", "localhost:9092");
-        properties.setProperty("group.id", "semaphores");
+        properties.setProperty("group.id", "roads");
 
         //Indicamos que vamos a consumir del topic de kafka que se llamará roads
         DataStream<MonitoringEvent> inputEventStream = env.addSource(
-                new FlinkKafkaConsumer010<MonitoringEvent>("semaphores", new EventDeserializationSchema(), properties)).assignTimestampsAndWatermarks(new IngestionTimeExtractor<>());;
+                new FlinkKafkaConsumer010<MonitoringEvent>("roads", new EventDeserializationSchema(), properties))
+                .assignTimestampsAndWatermarks(new IngestionTimeExtractor<>());;
 
 
         DataStream<MonitoringEvent> partitionedInput = inputEventStream.keyBy(new KeySelector<MonitoringEvent, Integer>() {
             @Override
             public Integer getKey(MonitoringEvent value) throws Exception {
-                return new Integer(value.getContador());
+                return new Integer(value.getId());
             }
         });
 
         //Definimos las condiciones de alerta
         Pattern<MonitoringEvent, ?> warningPattern = Pattern.<MonitoringEvent> begin("first")
-                .subtype(TemperatureEvent.class).where(new SimpleCondition<TemperatureEvent>() {
+                .subtype(RoadEvent.class).where(new SimpleCondition<RoadEvent>() {
                     @Override
-                    public boolean filter(TemperatureEvent value) throws Exception {
-                        return value.getTemperatura() > 27.0;
+                    public boolean filter(RoadEvent roadEvent) throws Exception {
+                        return roadEvent.getMediaTrafico() > 2;
                     }
-                });
+                }).next("second").subtype(RoadEvent.class).where(new SimpleCondition<RoadEvent>() {
+                    @Override
+                    public boolean filter(RoadEvent roadEvent) throws Exception {
+                        return roadEvent.getMediaTrafico() > 2;
+                    }
+                }).within(Time.seconds(10));
 
         Pattern<MonitoringEvent, ?> alertPattern = Pattern.<MonitoringEvent> begin("first")
-                .subtype(TemperatureEvent.class).where(new SimpleCondition<TemperatureEvent>() {
+                .subtype(RoadEvent.class).where(new SimpleCondition<RoadEvent>() {
                     @Override
-                    public boolean filter(TemperatureEvent temperatureEvent) throws Exception {
-                        return temperatureEvent.getContador()>40;
+                    public boolean filter(RoadEvent value) throws Exception {
+                        return value.getMediaTrafico() == 4;
                     }
-                });
+                }).oneOrMore().within(Time.seconds(10));
 
-        Pattern<MonitoringEvent, ?> accidentPattern = Pattern.<MonitoringEvent> begin("first")
-                .subtype(TemperatureEvent.class).where(new SimpleCondition<TemperatureEvent>() {
-                    @Override
-                    public boolean filter(TemperatureEvent value) throws Exception {
-                        return value.getContador() > 0;
-                    }
-                }).next("second").subtype(TemperatureEvent.class).where(new SimpleCondition<TemperatureEvent>() {
-                    @Override
-                    public boolean filter(TemperatureEvent temperatureEvent) throws Exception {
-                        return temperatureEvent.getContador() > 0;
-                    }
-                }).within(Time.seconds(5));
-
-        PatternStream<MonitoringEvent> patternStream = CEP.pattern(partitionedInput, warningPattern);
-
-        PatternStream<MonitoringEvent> alertPatternStream = CEP.pattern(partitionedInput, alertPattern);
-
-        PatternStream<MonitoringEvent> accidentPatternStream = CEP.pattern(partitionedInput, accidentPattern);
+        //Deteccion de warnings
+        PatternStream<MonitoringEvent> patternStream = CEP.pattern(inputEventStream, warningPattern);
+        //Deteccion de alerts
+        PatternStream<MonitoringEvent> alertPatternStream = CEP.pattern(partitionedInput, warningPattern);
+        //Deteccion de polution
+        PatternStream<MonitoringEvent> polutionPatternStream = CEP.pattern(partitionedInput, alertPattern);
 
         DataStream<Alerta> warningStream = patternStream
                 .select(new PatternSelectFunction<MonitoringEvent, Alerta>() {
                     private static final long serialVersionUID = 1L;
 
                     public Alerta select(Map<String, List<MonitoringEvent>> event) throws Exception {
-                        TemperatureEvent evento = (TemperatureEvent)event.get("first").get(0);
-                        return new Alerta("Temperatura especialmente alta: " + evento.getTemperatura()+ "ºC.", 'w');
+                        Timestamp time = new Timestamp(System.currentTimeMillis());
+                        return new Alerta("Aumento de tráfico en la zona. Informar por pantallas, vigilar tramo de carreteras.", 'w',time.toString());
                     }
 
                 });
@@ -113,23 +95,37 @@ public class ProceSimCity {
                     private static final long serialVersionUID = 1L;
 
                     public Alerta select(Map<String, List<MonitoringEvent>> event) throws Exception {
-                        TemperatureEvent evento = (TemperatureEvent)event.get("first").get(0);
-                        //documentoAlerts.append("mensaje", "Acercandose final de tiempo de vida del sensor, cambiar. contador, temperatura: "+evento.getContador()+","+evento.getTemperatura()+".");
-                        //alertCollection.insertOne(documentoAlerts);
-                        return new Alerta("Acercandose final de tiempo de vida del sensor, cambiar. contador, temperatura: "+evento.getContador()+","+evento.getTemperatura()+".", 'l');
+                        RoadEvent evento = (RoadEvent) event.get("first").get(0);
+                        String carril = " ";
+                        switch (evento.getId()){
+                            case 0:carril = "Norte";break;
+                            case 1:carril = "Noreste";break;
+                            case 2:carril = "Noroeste";break;
+                            case 3:carril = "Sudeste";break;
+                            case 4:carril = "Suroeste";break;
+                        }
+                        Timestamp time = new Timestamp(System.currentTimeMillis());
+                        return new Alerta("Aumento del tráfico en el carril "+carril+". Informar por pantallas, marcar como tráfico saturado para navegadores. ", 'l', time.toString());
                     }
 
                 });
 
-        DataStream<Alerta> accidentStream = accidentPatternStream
+        DataStream<Alerta> polutionStream = polutionPatternStream
                 .select(new PatternSelectFunction<MonitoringEvent, Alerta>() {
                     private static final long serialVersionUID = 1L;
 
                     public Alerta select(Map<String, List<MonitoringEvent>> event) throws Exception {
-                        TemperatureEvent evento = (TemperatureEvent)event.get("first").get(0);
-                        //documentoAccidents.append("mensaje", "Fallo del sistema de semáforos, posibilidad de accidente. BLOQUEAR TRAMO DE CARRETERA. contador,temperatura: "+evento.getContador()+","+evento.getTemperatura()+".");
-                        //accidentCollection.insertOne(documentoAccidents);
-                        return new Alerta("Fallo del sistema de semáforos, posibilidad de accidente. BLOQUEAR TRAMO DE CARRETERA. contador,temperatura: "+evento.getContador()+","+evento.getTemperatura()+".", 'a');
+                        RoadEvent evento = (RoadEvent) event.get("first").get(0);
+                        String carril = " ";
+                        switch (evento.getId()){
+                            case 0:carril = "Norte";break;
+                            case 1:carril = "Noreste";break;
+                            case 2:carril = "Noroeste";break;
+                            case 3:carril = "Sudeste";break;
+                            case 4:carril = "Suroeste";break;
+                        }
+                        Timestamp time = new Timestamp(System.currentTimeMillis());
+                        return new Alerta("Atasco en carril "+carril+". Efectuar analisis de polución.", 'a',time.toString());
                     }
 
                 });
@@ -137,7 +133,7 @@ public class ProceSimCity {
 
         warningStream.print();
         alertStream.print();
-        accidentStream.print();
+        polutionStream.print();
         partitionedInput.print();
 
         env.execute("CEP sobre simulador de Smart City");

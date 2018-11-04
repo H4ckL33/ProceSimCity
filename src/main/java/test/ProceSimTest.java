@@ -5,7 +5,7 @@ import org.apache.flink.quickstart.eventos.Alerta;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
-import org.apache.flink.quickstart.eventos.TemperatureEvent;
+import org.apache.flink.quickstart.eventos.RoadEvent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
@@ -13,17 +13,18 @@ public class ProceSimTest {
     @Test
     public void testCreateEvent(){
         int contador = 20;
-        double temperatura = 20.0;
-        TemperatureEvent event = new TemperatureEvent(contador, temperatura);
-        assertEquals(event.getContador(), contador);
-        assertEquals(event.getTemperatura(), temperatura);
+        int mediaTrafico = 2;
+        RoadEvent event = new RoadEvent(contador, mediaTrafico);
+        assertEquals(event.getId(), contador);
+        assertEquals(event.getMediaTrafico(), mediaTrafico);
     }
 
     @Test
     public void testCreateAlert(){
-        String mensaje="Mensaje de prueba";
-        char tipo = 'a';
-        Alerta alert = new Alerta(mensaje, tipo);
+        String mensaje="Tipo de alerta no válido, revise su creación.";
+        char tipo = 'j';
+        String timestamp  = "timestamp";
+        Alerta alert = new Alerta(mensaje, tipo, timestamp);
         assertEquals(alert.toString(), mensaje);
     }
 
