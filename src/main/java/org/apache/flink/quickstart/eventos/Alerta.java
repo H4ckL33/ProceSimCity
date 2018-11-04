@@ -30,9 +30,9 @@ public class Alerta {
                 Document documentoAlerts = new Document("tipo", "alert").append("timestamp", this.timestamp).append("mensaje", this.mensaje);
                 alertCollection.insertOne(documentoAlerts);break;
             case 'a':
-                MongoCollection<Document> polutionCollection = database.getCollection("polutionssCollection");
+                MongoCollection<Document> criticalCollection = database.getCollection("polutionssCollection");
                 Document documentoAccidents = new Document("tipo", "accident").append("timestamp", this.timestamp).append("mensaje", this.mensaje);
-                polutionCollection.insertOne(documentoAccidents);break;
+                criticalCollection.insertOne(documentoAccidents);break;
             default:
                 this.mensaje = "Tipo de alerta no válido, revise su creación.";break;
         }
